@@ -1,3 +1,23 @@
+//Field class
+package com.jpmc.cto.ecdp;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class Field {
+
+    public String name;
+    //private String uid;
+    public String declaredTechnicalType;
+    private boolean nullable;
+
+   }
+
+
+//SchemaGenerator
+
 package com.jpmc.cto.ecdp;
 
 import com.google.gson.Gson;
@@ -141,3 +161,133 @@ public class SchemaGenerator {
         }
     }
 }
+
+// Pom.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.jpmc.cto.ecdp</groupId>
+    <artifactId>ecdp-schema-utils</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <lombok.version>1.18.8</lombok.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.11</artifactId>
+            <version>2.4.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+    </dependencies>
+
+
+
+</project>
+
+
+//settings.xml file in C:\Users\I739937\.m2
+<settings xmlns="http://maven.apache.org/settings/1.0.0" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	
+  <proxies> 
+	 <proxy>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>approxy.jpmchase.net</host>
+      <port>8080</port>
+     </proxy>
+  </proxies>
+  <mirrors>
+    <!-- mirror
+     | Specifies a repository mirror site to use instead of a given repository. The repository that
+     | this mirror serves has an ID that matches the mirrorOf element of this mirror. IDs are used
+     | for inheritance and direct lookup purposes, and must be unique across the set of mirrors.
+     |-->
+    <mirror>
+      <!--This sends everything else to /jpmc-public -->
+      <id>jpmc-public</id>
+      <!--mirrorOf>*,!FRSTEST</mirrorOf-->
+	  <mirrorOf>*</mirrorOf>
+      <url>http://repo-proxy.jpmchase.net/maven/content/groups/jpmc-public/</url>
+    </mirror>
+  </mirrors>
+
+  <profiles>
+     <profile>
+       <id>frs</id>
+       <!-- Enable jpmc snapshots repositories for the built in jpmc-public repository group to direct -->
+       <!-- all requests to FRS via the mirror -->
+       <repositories>
+         <repository>
+           <id>jpmc-public</id>
+           <url>http://repo-proxy.jpmchase.net/maven/content/groups/jpmc-public/</url>
+           <releases><enabled>true</enabled></releases>
+           <snapshots><enabled>true</enabled></snapshots>
+         </repository>
+		 <repository>
+			<id>cdh.repo</id>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+			<name>Cloudera Repositories</name>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+         <!--repository>
+           <id>FRSTEST</id>
+           <url>https://repo.jpmchase.net/maven/content/repositories/FRSTEST/</url>
+           <releases><enabled>true</enabled></releases>
+           <snapshots><enabled>false</enabled></snapshots>
+         </repository-->
+       </repositories>
+      <pluginRepositories>
+         <pluginRepository>
+           <id>jpmc-public</id>
+           <url>http://repo-proxy.jpmchase.net/maven/content/groups/jpmc-public/</url>
+           <releases><enabled>true</enabled></releases>
+           <snapshots><enabled>true</enabled></snapshots>
+         </pluginRepository>
+         <!--pluginRepository>
+           <id>FRSTEST</id>
+           <url>https://repo.jpmchase.net/maven/content/repositories/FRSTEST/</url>
+           <releases><enabled>true</enabled></releases>
+           <snapshots><enabled>false</enabled></snapshots>
+         </pluginRepository-->
+       </pluginRepositories>
+     </profile>
+   </profiles>
+   
+   <activeProfiles>
+     <!-- make the profile active all the time -->
+     <activeProfile>frs</activeProfile>
+  </activeProfiles>
+
+  
+  <pluginGroups>
+    <pluginGroup>org.sonatype.plugins</pluginGroup>
+  </pluginGroups>
+
+</settings>
