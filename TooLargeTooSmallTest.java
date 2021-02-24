@@ -1,3 +1,288 @@
+### .csv for dates ######
+snapshot_date,db_rft_rfis_conformed.card_acct_lftm_ptcp,EOM,25,2018-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_mod_apr_schd,EOM,25,2018-10-01,type1
+snapshot_date,db_rft_rfis_conformed.CARD_pgm_acct_ptcp,EOM,25,2018-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_pre_pgm_acct_def,EOM,25,2018-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_pymt_pgm,EOM,25,2018-09-01,type1
+snapshot_date,db_rft_rfis_conformed.card_pymt_pgm_ftr,EOM,25,2018-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_acq_seg,EOM,25,2011-12-01,type1
+snapshot_date,db_rft_rfis_conformed.card_c3_rvsh_rwrd,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.ccar_t31_v38_seg_cpbs,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_bal_strat,EOM,25,2009-01-01,type1
+snapshot_month,db_rft_rfis_conformed.card_cpb_acct_low_prec,EOM,25,2005-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_acq_seg_fact,EOM,25,2014-01-01,type1
+snapshot_month,db_rft_rfis_conformed.card_acct_mo,EOM,25,2013-08-01,type1
+snapshot_date,db_rft_rfis_conformed.card_acq_scr_card,EOD,25,2017-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_appl,EOD,25,2017-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_applnt,EOD,25,2017-10-01,type1
+snapshot_date,db_rft_rfis_conformed.card_baltran,EOM,25,2016-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_cb_armaster,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_tch_disc_finc_comp,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_tch_finc_chrg_cal,EOM,25,2018-09-01,type1
+snapshot_date,db_rft_rfis_conformed.card_tch_index_table,EOM,25,2018-09-01,type1
+snapshot_date,db_rft_rfis_conformed.card_appl_enhc,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_cdsvc_applnt_stars,EOM,25,2017-02-01,type1
+snapshot_date,db_rft_rfis_conformed.card_coll_acct,EOD,25,2016-11-01,type1
+snapshot_date,db_rft_rfis_conformed.ccar_t31_acq_bt_data,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.ccar_t31_acq_dbc_mdit,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.ccar_t31_acq_dbc_tss,EOM,25,2014-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_seg17,EOM,25,2004-01-01,type1
+snapshot_date,db_rft_rfis_conformed.card_tch_alt_disc_asgn,EOM,25,2018-09-01,type1
+snapshot_month,db_rft_rfis_conformed.card_cdsvc_acct_stars_new,EOM,25,2012-04-01,type1
+snapshot_date,db_rft_rfis_conformed.card_cust_acct_card_new,EOD,25,2012-12-01,type1
+snapshot_date,db_rft_rfis_conformed.card_tch_prim_disc_grp,EOM,25,2014-01-01,type1
+snapshot_month,db_rft_rfis_conformed.card_risk_aptt_modl_usr,EOM,25,2009-01-01,type1
+snapshot_date,db_rft_rfis_conformed.moodys_all_zips,EOM,25,2019-06-01,type2
+snapshot_date,db_rft_rfis_conformed.card_coll_cust_appl,EOM,25,2019-09-01,type1
+snapshot_date,db_rft_rfis_conformed.CARD_COLL_ACCT_APPL,EOM,25,2019-09-01,type1
+snapshot_date,db_rft_rfis_ccar.intf2_appla,EOM,25,2016-01-01,type2
+snapshot_date,db_rft_rfis_ccar.intf2_rsl_fin,EOM,25,2014-01-01,type2
+snapshot_date,db_rft_rfis_ccar.discloser_group,EOM,25,2018-12-01,type2
+snapshot_date,db_rft_rfis_ccar.intf2_cpbs_retroscore_portfolio,EOM,25,2016-01-01,type2
+snapshot_date,db_rft_rfis_ccar.intf2_retroscore_carsv2,EOM,25,2016-01-01,type2
+snapshot_date,db_rft_rfis_ccar.intf2_cpbs_retroscore_acquisition,EOM,25,2016-01-01,type2
+snapshot_date,db_rft_rfis_ccar.intf2_tdr_solution,EOM,25,2019-09-01,type2
+
+##### sdl precheck .sh #####
+#!/bin/bash
+
+. /apps/rft/cmds/cecl_v2/environment.cfg
+
+lp_date=$1
+job_instance_id=$2
+
+#lp_date=20200131
+#job_instance_id=000000
+
+
+reportPath="/apps/rft/cmds/cecl_v2/reports/"
+inputContextList=${reportPath}sdl_v2_context_list.txt
+inputTableList=${reportPath}sdl_v2_table_list.csv
+queryOutputFile=$reportPath${env}_query_result.csv
+partitionOutputFile=$reportPath${env}_partition_result.csv
+partitionExportFile=$reportPath${env}_partition_export.csv
+sdlPreCheckExecutionReport=$reportPath${env}_sdlPreCheckExecutionReport.txt
+
+#distribution_list=CECL_DEV_Team@restricted.chase.com
+distribution_list=raymond.k.yeung@jpmchase.com
+
+
+rm -f $sdlPreCheckExecutionReport
+rm -f $partitionExportFile
+
+mail_success() {
+
+echo "SDL Pre-Check of $lp_date LP: No duplicate context nor missing partition found in $env environment."
+
+Body1=" SDL Pre-Check of $lp_date LP: No duplicate context nor missing partition found in $env environment."
+Body2=" Check execution report attached for warnings"
+Body3=" Thanks"
+Body4=" CECL Data Team"
+
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n"
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n" |  mailx -a ${sdlPreCheckExecutionReport} -a ${partitionExportFile} -s "SDL Pre-Check Execution Report" $distribution_list
+}
+
+mail_failure() {
+
+echo "SDL Pre-Check of $lp_date LP: Duplicate context or missing partition found in $env environment."
+
+Body1=" SDL Pre-Check of $lp_date LP: Duplicate context or missing partition found in $env environment."
+Body2=" Check execution report attached"
+Body3=" Thanks"
+Body4=" CECL CFM Data Team"
+
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n"
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n" |  mailx -a ${sdlPreCheckExecutionReport} -a ${partitionExportFile} -s "SDL Pre-Check Execution Report" $distribution_list
+}
+
+refresh_kinit() {
+
+if [ "$env" == "uat" ]
+then
+    export KRB5CCNAME=~/krb5cc_a_cmds_data_nu
+    echo $(/opt/CARKaim/sdk/clipasswordsdk GetPassword -p AppDescs.AppID=90183-C-0 -p Query="safe=M1-AW-BA0-C-A-90183-000;Object=WinDomainQA-naeast.ad.jpmorganchase.com-a_cmds_data_nu" -o Password) | kinit a_cmds_data_nu@NAEAST.AD.JPMORGANCHASE.COM
+elif [ "$env" == "prod" ]
+then
+    export KRB5CCNAME=~/krb5cc_a_cmds_data_np
+    echo $(/apps/rft/cmds/gen_keytab_a_cmds_data_np.sh) | kinit a_cmds_data_np@NAEAST.AD.JPMORGANCHASE.COM
+else
+    echo "*** var_envrn is not uat nor prod, potential deployment issue or env.cfg file corruption ***" | tee -a $sdlPreCheckExecutionReport
+    echo "*** var_envrn is not uat nor prod, potential deployment issue or env.cfg file corruption ***" | tee -a $partitionExportFile
+    echo "" | tee -a $sdlPreCheckExecutionReport
+    mail_failure
+    exit 1
+fi
+
+
+}
+
+
+
+exit_code=0
+
+#duplicate_cntxt_query="select count(*) as cnt,businessdate,contextname from db_rft_rfis_conformed.context where contextname=$context_name and businessdate >='2016-01-01' and islatest=true and status='COMPLETED' group by businessdate,contextname having cnt>1;"
+
+if [ "$env" == "uat" ]
+then
+    impala_shell_cmd="impala-shell -k -i jpmis-sfpuat-impala1.svr.us.jpmchase.net:25003 --ssl -B -q "
+    impala_pool="set request_pool=rfis_pool;"
+elif [ "$var_envrn" == "prod" ]
+then
+    impala_shell_cmd="impala-shell -k -i jpmis-sfpprod-hapxy1.svr.us.jpmchase.net:25003 --ssl --ca_cert=/etc/security/certs/JPMCROOTCA.pem -B -q "
+    impala_pool="set request_pool=RFIS_Pool;"
+else
+    echo "*** var_envrn is not uat nor prod, potential deployment issue or env.cfg file corruption ***" | tee -a $sdlPreCheckExecutionReport
+    echo "*** var_envrn is not uat nor prod, potential deployment issue or env.cfg file corruption ***" | tee -a $partitionExportFile
+    echo "" | tee -a $sdlPreCheckExecutionReport
+    mail_failure
+    exit 1
+fi
+
+echo "SDL Pre Check Start: $(date)" | tee -a $sdlPreCheckExecutionReport
+
+while IFS= read -r context_name
+do
+    echo "Text read from ${inputContextList}: $context_name"
+    duplicate_cntxt_query="select count(*) as cnt,businessdate,contextname from db_rft_rfis_conformed.context where contextname='$context_name' and businessdate >='2016-01-01' and islatest=true and status='COMPLETED' group by businessdate,contextname having cnt>1;"
+
+    $impala_shell_cmd "$impala_pool $duplicate_cntxt_query" -o $queryOutputFile --print_header '--output_delimiter=,'
+    line_count=$( cat $queryOutputFile | wc -l )
+
+    if [ $line_count -gt 1 ]
+    then
+        echo "$context_name has duplicates" | tee -a $sdlPreCheckExecutionReport
+        cat $queryOutputFile >> $sdlPreCheckExecutionReport
+        echo "" | tee -a $sdlPreCheckExecutionReport
+        exit_code=1
+    else
+        echo "$context_name has no duplicates"
+    fi
+done < ${inputContextList}
+
+if [ $exit_code -eq 0 ]
+then
+    echo "No duplicates found" | tee -a $sdlPreCheckExecutionReport
+    echo "" | tee -a $sdlPreCheckExecutionReport
+fi
+
+
+refresh_queries="refresh db_rft_rfis_conformed.card_acq_seg;"
+
+$impala_shell_cmd "$impala_pool $refresh_queries"
+
+while IFS= read -r line
+do
+    refresh_kinit
+    echo "$line"
+    date_col=$(echo $line | cut -d',' -f1)
+    tbl_name=$(echo $line | cut -d',' -f2)
+    type_col=$(echo $line | cut -d',' -f3)
+    threshold=$(echo $line | cut -d',' -f4)
+    start_date=$(echo $line | cut -d',' -f5)
+    query_type=$(echo $line | cut -d',' -f6)
+
+    lower_bound=$(echo "scale=2;100 - $threshold" | bc)
+    upper_bound=$(echo "scale=2;100 + $threshold" | bc)
+
+    echo "************************************** $date_col, $tbl_name, $type_col, $lower_bound, $upper_bound, $start_date **********************************************"
+
+    rm -f $partitionOutputFile
+    echo "******** Table: ${tbl_name} ********" >> $partitionExportFile
+    echo "${date_col},context_key,max_load_dt,count(*),contextname,runtype,createdon,updatedon" >> $partitionExportFile
+
+#d="2016-01-01"
+d=$start_date
+lp=$(date -d $lp_date +"%Y-%m-%d")
+until [[ $d > $lp ]]; do 
+    d=$(date -I -d "$d + 1 month")
+
+#    if [ $type_col  = "EOM" ]
+#    then
+#        query_date=\'$(date -I -d "$d - 1 day")\'
+#    else
+        query_date=\'$(date -I -d "$d - 4 day")\',\'$(date -I -d "$d - 3 day")\',\'$(date -I -d "$d - 2 day")\',\'$(date -I -d "$d - 1 day")\'
+#    fi
+
+    echo "$query_date"
+
+    if [ "$query_type" = "type1" ]
+    then
+        query="select $date_col,CONCAT('Context ', CAST(a.context_key as varchar(255))) as context_key,max(a.load_dt) as max_load_dt,count(*),max(b.contextname)as contextname,max(b.runtype)as runtype,max(b.createdon)as createdon,max(b.updatedon)as updatedon from $tbl_name a left join db_rft_rfis_conformed.context b on a.context_key = b.context_key where a.$date_col in (${query_date}) and b.status = 'COMPLETED' and b.islatest = true group by 1,2 order by 1 ;"
+    else
+        query="select a.$date_col,CONCAT('Context ', CAST(a.context_key as varchar(255))) as context_key,'dummy' as max_load_dt,count(*),max(b.contextname)as contextname,max(b.runtype)as runtype,max(b.createdon)as createdon,max(b.updatedon)as updatedon from $tbl_name a left join db_rft_rfis_conformed.context b on a.context_key = b.context_key where a.$date_col in (${query_date}) and b.status = 'COMPLETED' and b.islatest = true group by 1,2 order by 1  ;"
+    fi
+
+#    query="select a.$date_col,CONCAT('Context ', CAST(a.context_key as varchar(255))) as context_key,count(*)from $tbl_name a left join db_rft_rfis_conformed.context b on a.context_key = b.context_key where a.snapshot_date in (${query_date}) and b.status = 'COMPLETED' and b.islatest = true group by 1,2 order by 1;"
+
+    $impala_shell_cmd "$impala_pool $query" -o $partitionOutputFile --print_header '--output_delimiter=,'
+    sed '1d' $partitionOutputFile >> $partitionExportFile
+
+    line_count=$( cat $partitionOutputFile | wc -l )
+    if [ $line_count -eq 2 ]
+    then
+        current_month_count=$(tail -n +2 $partitionOutputFile | cut -d',' -f4)
+        data_date=$(tail -n +$line_count $partitionOutputFile | cut -d',' -f1)
+  
+#        echo "Table $tbl_name, Type: $type_col $data_date row count: $current_month_count" | tee -a $sdlPreCheckExecutionReport
+
+        if [[ $query_date == *"$lp"* ]]
+        then
+            percent=$( echo "scale=2; $current_month_count / $last_month_count * 100" | bc )  
+            if  [ $( echo "$percent>$upper_bound" | bc ) -eq 1 ] || [ $( echo "$percent<$lower_bound" | bc ) -eq 1 ]
+            then
+                 echo "" | tee -a $sdlPreCheckExecutionReport
+                 echo "Warning: Table $tbl_name, Type: $type_col $data_date row count is $percent percent of the previous month" | tee -a $sdlPreCheckExecutionReport
+            fi
+        fi
+        last_month_count=$current_month_count
+        last_month_date=$data_date
+    elif [ $line_count -gt 2 ]
+    then
+            current_month_count=$(tail -n +$line_count $partitionOutputFile | cut -d',' -f3)
+            data_date=$(tail -n +$line_count $partitionOutputFile | cut -d',' -f1)
+#            echo "Table $tbl_name, Type: $type_col $data_date row count: $current_month_count" | tee -a $sdlPreCheckExecutionReport
+
+            if [[ $query_date == *"$lp"* ]]
+            then
+                percent=$( echo "scale=2; $current_month_count / $last_month_count * 100" | bc )
+                if  [ $( echo "$percent>$upper_bound" | bc ) -eq 1 ] || [ $( echo "$percent<$lower_bound" | bc ) -eq 1 ]
+                then
+                     echo "" | tee -a $sdlPreCheckExecutionReport
+                     echo "Warning: Table $tbl_name, Type: $type_col $data_date row count is $percent percent of the previous month" | tee -a $sdlPreCheckExecutionReport
+                fi
+            fi
+            last_month_count=$current_month_count
+            last_month_date=$data_date
+    else
+        echo "Table $tbl_name, Type: $type_col is missing partition on $query_date"  | tee -a $sdlPreCheckExecutionReport
+        exit_code=1
+    fi
+done
+
+done < ${inputTableList}
+
+if [ $exit_code -eq 0 ]
+then
+    echo "No missing partitions found" | tee -a $sdlPreCheckExecutionReport
+    echo "" | tee -a $sdlPreCheckExecutionReport
+fi
+
+
+echo "SDL Pre Check End: $(date)" | tee -a $sdlPreCheckExecutionReport
+
+if [ $exit_code -eq 0 ]
+then
+    mail_success
+else
+    mail_failure
+fi
+
+exit $exit_code
+
+
+
+
 ####################group0 wrapper ##########################3
 #!/bin/bash
 
