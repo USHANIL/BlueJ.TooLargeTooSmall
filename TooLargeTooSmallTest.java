@@ -1,3 +1,131 @@
+####################group0 wrapper ##########################3
+#!/bin/bash
+
+. /apps/rft/cmds/cecl_v2/environment.cfg
+
+lp_date=$1
+duration=$2
+job_instance_id=$3
+
+#lp_date=202001
+#duration=48
+#job_instance_id=00000
+
+py_file_name=publish_common_tables_ctx.py
+prop_file_name=${env}_med_cluster_02.ini
+
+export PYSPARK_PYTHON=/apps/anaconda/4.3.1/3/bin/python
+export PATH=/apps/anaconda/4.3.1/3/bin/:$PATH
+export HADOOP_CONF_DIR=/etc/hive/conf:/etc/hbase/conf:
+
+HOME=/apps/rft/cmds/cecl_v2/cecl_modeldevelopment/
+sdl_grp_no=0
+
+logPath=/data/rft/rfis/logs/cecl/
+reportFile=sdl_group${sdl_grp_no}_execution_report.txt
+
+distribution_list=CECL_DEV_Team@restricted.chase.com,CT_CCBRFT_RFIS_SRE_Team@restricted.chase.com
+
+mail_success() {
+
+echo "SDL group $sdl_grp_no $lp_date LP completed successfully in $env environment." | tee -a ${logPath}${reportFile}
+
+Body1=" SDL group $sdl_grp_no $lp_date LP completed successfully in $env environment."
+Body2=" Check execution report attached"
+Body3=" Thanks"
+Body4=" CECL Data Team"
+
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n"
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n" |  mailx -a ${logPath}${reportFile} -s "SDL group $sdl_grp_no $lp_date LP Execution Report" $distribution_list
+}
+
+mail_failure() {
+
+echo "SDL group $sdl_grp_no $lp_date LP execution failed in $env environment." | tee -a ${logPath}${reportFile}
+
+Body1=" SDL group $sdl_grp_no $lp_date LP execution failed in $env environment."
+Body2=" Check execution report attached"
+Body3=" Thanks"
+Body4=" CECL CFM Data Team"
+
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n"
+echo -e "$Body1\n$Body2\n$Body3\n$Body4\n" |  mailx -a ${logPath}${reportFile} -s "SDL group $sdl_grp_no $lp_date LP Execution Report" $distribution_list
+}
+
+
+#SDL_PKG_RUN_PATH=/apps/rft/cmds/cecl_v2/cecl_modeldevelopment/
+# cd $SDL_PKG_RUN_PATH
+#source ./../cecl_modeldevelopment/environment/activate.sh
+cd $HOME
+source environment/activate.sh
+
+python -m spowrk --settings $prop_file_name execute src/main/python/$py_file_name $lp_date $duration $env $job_instance_id
+
+declare -A module_size_map=( ["cecl_data.sdl.etl.inputdata.staging.StagingBadArns"]="1200000000" \
+                             ["cecl_data.sdl.etl.inputdata.staging.StagingInactiveClosuresTable"]="120000000" \
+                             ["cecl_data.sdl.etl.processing.create_account_id_exclusions.FullAccountIDsToRemove"]="140000000" \
+                             ["cecl_data.sdl.etl.processing.create_month_id_mapping_table.MonthIdMappingTable"]="160000" \
+                             ["cecl_data.sdl.etl.processing.create_universal_customer_id_table.CreateUniversalCustomerID"]="2200000000" \
+                             ["cecl_data.sdl.etl.processing.create_wamu_flag_accounts.AccountIDAssociatedWithWamu"]="90000000" \
+                           )
+
+grp_folder_count_ref=6
+exit_code=0
+
+rm -f ${logPath}${reportFile}
+echo "SDL group $sdl_grp_no Execution Report" | tee -a ${logPath}${reportFile}
+echo "============================" | tee -a ${logPath}${reportFile}
+
+grp_folder_count=$(hdfs dfs -ls /tenants/rft/rfis/conformed/cecl_v2/sdl/output/$lp_date | grep "^d" | wc -l)
+
+if [ $grp_folder_count -ne $grp_folder_count_ref ]
+then
+    echo "Error: SDL Group $sdl_grp_no generated $grp_folder_count folders, expecting ${grp_folder_count_ref}" | tee -a ${logPath}${reportFile}
+    echo "" | tee -a ${logPath}${reportFile}
+    exit_code=1
+fi
+
+hdfs dfs -du -s /tenants/rft/rfis/conformed/cecl_v2/sdl/output/${lp_date}/* | while read line ; do
+folder_size=$(echo ${line} | awk '{print $1}')
+module=$( echo $line | cut -d' ' -f3- | cut -d'/' -f10- )
+threshold=${module_size_map["$module"]}
+#echo "module name: $module"
+#echo "module size: $folder_size"
+#echo "size threshold: $threshold"
+
+
+if [ $folder_size -lt $threshold ] && [ $folder_size -ne 0 ]
+then
+    echo "Warning: $(echo $line | cut -d' ' -f3-)" | tee -a ${logPath}${reportFile}
+    echo "module size: $(echo $folder_size | awk '{ foo = $1 / 1024 / 1024 ; print foo " MB" }' )" | tee -a ${logPath}${reportFile}
+    echo "module size threshold: $(echo $threshold | awk '{ foo = $1 / 1024 / 1024 ; print foo " MB" }' )" | tee -a ${logPath}${reportFile}
+    echo "" | tee -a ${logPath}${reportFile}
+
+fi
+
+if [ $folder_size -eq 0 ]
+then
+    echo "Error: $line" | tee -a ${logPath}${reportFile}
+    echo "Module size: $folder_size, $module deleted from HDFS\n" | tee -a ${logPath}${reportFile}
+    hdfs dfs -rm -r -f -skipTrash $(echo $line | cut -d' ' -f3-)
+    echo "Remaining folders: $(hdfs dfs -ls /tenants/rft/rfis/conformed/cecl_v2/sdl/output/$lp_date | grep "^d" | wc -l)" | tee -a ${logPath}${reportFile}
+    echo "" | tee -a ${logPath}${reportFile}
+    exit_code=1
+fi
+done
+
+if [ $exit_code -eq 0 ]
+then
+    mail_success
+else
+    mail_failure
+fi
+
+exit $exit_code
+
+
+
+
 ##################################### inputdict #############################
 
 # coding: utf-8
