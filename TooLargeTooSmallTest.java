@@ -1,3 +1,38 @@
+#######  some useful commands
+
+hdfs dfs -copyFromLocal /tmp/e859192/fdl_version_202012LP_20210118_223015EDT.txt  /tenants/rft/rfis/conformed/cecl_v2/sdl/output/fdl_202012LP_20210118_223015EDT
+
+hdfs dfs -ls  /tenants/rft/rfis/conformed/cecl_v2/sdl/output/202009
+hdfs dfs -du -s -h  /tenants/rft/rfis/conformed/cecl_v2/sdl/output/202009/*
+hdfs dfs -ls  /tenants/rft/rfis/conformed/cecl_v2/sdl/output/202009/* | wc -l
+
+hdfs dfs -copyToLocal /tenants/rft/rfis/conformed/cecl_v2/sdl/output/202009/input_dict/input_dicts_202009LP_2020-10-27-15.55.12.txt /rqd/cfm/nas_prd/input_dictionary/
+
+For Prod use the following command
+impala-shell -k -i   jpmis-sfpprod-hapxy1.svr.us.jpmchase.net:25003 --ssl --ca_cert=/etc/security/certs/JPMCROOTCA.pem -B -f Prod_trend_check_request_all_table_June9.sql -o Prod_query_result_June9.csv --print_header '--output_delimiter=,'
+
+Prod_trend_check_request_all_table_June9
+
+For UAT use the following command
+impala-shell -k -i jpmis-sfpuat-hapxy1.svr.us.jpmchase.net:25003 --ssl --ca_cert=/etc/security/certs/JPMCROOTCA.pem -B -f uat_trend_check_request_all_table_apr15.sql -o Uat_query_result_apr15.csv --print_header '--output_delimiter=,'
+
+Then run the sample command
+Sample command: For name node either bdtpisr4n1 or bdtpisr4n2 –depends on active Name node
+hdfs dfs -du -s -h hdfs://bdtpisr4n2.svr.us.jpmchase.net:8020/tenants/rft/rfis/conformed/cecl_v2/sdl/output/202012/*
+hdfs dfs -ls hdfs://bdtpisr4n2.svr.us.jpmchase.net:8020/tenants/rft/rfis/conformed/cecl_v2/sdl/output/202012/*
+
+ps -ef | grep -i "cecl_common_wrapper_script" 
+
+kill -9 44065
+kill -9 47779
+
+yarn application -kill application_1606119998192_5816 
+
+yarn logs -applicationId application_xxxxxxxxxxxxx_yyyyyy -appOwner <userowner> > application_xxxxxxxxxxxxx_yyyyyy.log 
+
+cat  publish_fdl.py_208764_20201111152912.log  | grep cecl_v2_run_meta
+
+
 ### .csv for dates ######
 snapshot_date,db_rft_rfis_conformed.card_acct_lftm_ptcp,EOM,25,2018-10-01,type1
 snapshot_date,db_rft_rfis_conformed.card_mod_apr_schd,EOM,25,2018-10-01,type1
