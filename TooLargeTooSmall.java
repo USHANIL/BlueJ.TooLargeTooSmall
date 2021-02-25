@@ -34,25 +34,25 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class SchemaGenerator {
+public class SchemaGenerator_Databook_CFMInputs {
 
     public static void main(String args[]) {
         //String parquetFilePath = "I:\\Ramana\\work\\CIB\\datasets\\marketperson";
         String[] fileNames;
-        File pathName = new File("C:\\test\\input");
+        File pathName = new File("C:\\test\\input\\CFMInputs_Parquets\\");
         fileNames = pathName.list();
 
         for (String fileName : fileNames) {
-            String parquetFilePath = "C:\\test\\input\\" + fileName;
+            String parquetFilePath = "C:\\test\\input\\CFMInputs_Parquets\\" + fileName;
             String justFileName = FilenameUtils.getBaseName(fileName);
-            String jsonFilePath = "C:\\test\\output\\"  + justFileName + ".json";
+            String jsonFilePath = "C:\\test\\output\\cfminputs_json_for_Databook\\"  + justFileName + ".json";
 
             //Format the json string according to the format required for Databook Registration (start and ending json format)
             String jsonForRegistration1 = "{\n" +
-                    "  \"name\": \"CFMInput\",\n" +
-                    "  \"description\": \"FDL Model\",\n" +
+                    "  \"name\": \"CFMInputs_" + justFileName +
+                    "\",\n" +
+                    "  \"description\": \"Engine input - FDL Model\",\n" +
                     "  \"applicationId\": \"89055\",\n" +
-                    "  \"application\": {\"applicationId\":\"89055\"},\n" +
                     "  \"modelSourceType\": \"Parquet\",\n" +
                     "  \"schemas\": [\n" +
                     "\t{\n" +
@@ -71,7 +71,7 @@ public class SchemaGenerator {
                     "\",\n" +
                     "\t\t\t\"fields\":" +
                     "\n\t\t";
-            String jsonForRegistration2 = "\n}]\n" +
+            String jsonForRegistration2 = "\n" +
                     "\t\t}]\n" +
                     "\t}]\n" +
                     "}" ;
@@ -93,11 +93,11 @@ public class SchemaGenerator {
                             .nullable(field.nullable())
                             .build()
                     )
+                    //.filter(ele -> ele.declaredTechnicalType.contains("array"))
                     .filter(ele -> ele.declaredTechnicalType.contains("struct"))
                     .collect(Collectors.toList());
-
-                //Remove the struct data type from fields as it should be available as part of nested data structure
-                List<Field> fields = Arrays.stream(parquetFile.fields())
+            //Remove the struct data type from fields as it should be available as part of nested data structure
+            List<Field> fields = Arrays.stream(parquetFile.fields())
                     .map(
                             field -> Field.builder()
                                     .name(field.name())
@@ -107,52 +107,72 @@ public class SchemaGenerator {
                                     .nullable(field.nullable())
                                     .build()
                     )
+                    //.filter(ele1 -> !ele1.declaredTechnicalType.contains("ARRAY"))
                     .filter(ele1 -> !ele1.declaredTechnicalType.contains("STRUCT"))
                     .collect(Collectors.toList());
 
-
-            //Print out the nested fields in a text file and can be used to manually copy it as nested data structure in the corresponding json
-            try {
-                if (nestedFields.size() > 0) {
-                    String nestedFilePath = "C:\\test\\output\\" + justFileName + ".txt";
-                    FileWriter fw = new FileWriter(nestedFilePath);
-                    fw.write(justFileName + "\n");
-                    for (Field element : nestedFields) {
-
-                        String nestedFieldsList = element.declaredTechnicalType.split(Pattern.quote("["))[1].split(Pattern.quote("]"))[0];
-                        String nestedFieldName = element.name;
-                        fw.write(nestedFieldName + "\n");
-                        fw.write(nestedFieldsList);
-                        fw.write("\n\n");
-                        /*
-                        List<Field> nestedFieldsArray = Arrays.stream(gson2.toJson()
-                           .map(
-                                    field -> Field.builder()
-                                            .name(field.name())
-                                            .declaredTechnicalType(field.dataType().json())
-                                            //.withColumn("declaredTechnicalType(field.dataType().json().toString())",)
-                                            // .declaredTechnicalType(field.dataType().typeName().toUpperCase())
-                                            .nullable(field.nullable())
-                                            .build()
-                            )
-                            .collect(Collectors.toList()); */
-                    }
-                    fw.close();
-                }
-            }
-            catch (Exception e) {
-                System.out.println(e);
-            }
+            // Below code is only for CFMInputs declared Physical Model as mentioned by Suresh - only for FDL Models
+            //comment below lines for models other thanm FDL
+            Field lp = new Field("LP","STRING",true);
+            Field dataPerc = new Field("data_percentage","STRING",true);
+            fields.add(lp);
+            fields.add(dataPerc);
+            // end
 
             Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
             try {
                 FileWriter fw = new FileWriter(jsonFilePath);
                 fw.write(jsonForRegistration1);
                 gson1.toJson(fields, fw);
-                fw.write(jsonForRegistration2);
-               // System.out.println("jsonfile created");
 
-               // JSONWriter jw = new JSONWriter(jsonFilePath);
+                //Print out the nested fields in a text file and can be used to manually copy it as nested data structure in the corresponding json
+                try {
+                    if (nestedFields.size() > 0) {
+                        //Below file is for nested structure
+                      //  String nestedFilePath = "C:\\test\\output\\" + justFileName + ".txt";
+                      //  FileWriter fw1 = new FileWriter(nestedFilePath);
+                        // fw1.write(justFileName + "\n");
+                        String str1 = ",\n" +
+                                "\t\t\"dataStructures\": [";
+                        fw.write(str1);
+
+                        int cnt = 0;
+                        for (Field element : nestedFields) {
+                            //String nestedFieldName = element.name;
+                            String nestedFieldName = "";
+                            if (cnt > 0)
+                                nestedFieldName = "                            ,";
+
+                            nestedFieldName = nestedFieldName + "{\n" +
+                                    "                            \"name\": \"" +
+                                    element.name +
+                                    "\",\n" +
+                                    "                            \"description\": \"" +
+                                    element.name + " description" +
+                                    "\",\n" +
+                                    "                            \"fields\":[";
+
+                            String nestedFieldsList = "                            " + element.declaredTechnicalType.split(Pattern.quote("["))[1].split(Pattern.quote("]"))[0].replaceAll(Pattern.quote(",\"metadata\":{}"),"");
+                            fw.write(nestedFieldName + "\n");
+                            fw.write(nestedFieldsList);
+                            fw.write("]}\n\n");
+
+                            cnt++;
+
+                            if (cnt == nestedFields.size() )
+                            {
+                                fw.write("]");
+                            }
+                        }
+
+                    }
+                }
+                catch (Exception e) {
+                    System.out.println(e);
+                }
+                // End of nested structure
+
+                fw.write(jsonForRegistration2);
                 fw.close();
             } catch (Exception e) {
                 System.out.println(e);
